@@ -1,27 +1,6 @@
-# Open Source Contributions
-
-My contributions to open source projects.
-
 <!-- contributions:start -->
 
-## Merged contributions
-
-| Project | Pull request | Link |
-| --- | --- | --- |
-| [react\-hook\-form/react\-hook\-form](https://github.com/react-hook-form/react-hook-form) | fix\(deepEqual\): compare sparse array lengths | [#13857](https://github.com/react-hook-form/react-hook-form/pull/13857) |
-| [mantinedev/mantine](https://github.com/mantinedev/mantine) | \[@mantine/form\] Add \`UseContextForm\` type export | [#9275](https://github.com/mantinedev/mantine/pull/9275) |
-
-[View all merged pull requests](https://github.com/pulls?q=is%3Apr+author%3Aarba-octo+is%3Apublic+-user%3Aarba-octo+is%3Amerged+sort%3Aupdated-desc)
-
-## Open pull requests
-
-| Project | Pull request | Link |
-| --- | --- | --- |
-| [mantinedev/mantine](https://github.com/mantinedev/mantine) | \[@mantine/charts\] Fix right Y axis children rendering | [#9283](https://github.com/mantinedev/mantine/pull/9283) |
-| [date\-fns/date\-fns\.org](https://github.com/date-fns/date-fns.org) | Fix type predicates in documentation | [#240](https://github.com/date-fns/date-fns.org/pull/240) |
-| [date\-fns/date\-fns\.org](https://github.com/date-fns/date-fns.org) | Fix contributors list pagination | [#239](https://github.com/date-fns/date-fns.org/pull/239) |
-| [date\-fns/date\-fns\.org](https://github.com/date-fns/date-fns.org) | Fix duplicate versions in documentation selector | [#237](https://github.com/date-fns/date-fns.org/pull/237) |
-
-[View all open pull requests](https://github.com/pulls?q=is%3Apr+author%3Aarba-octo+is%3Apublic+-user%3Aarba-octo+is%3Aopen+sort%3Aupdated-desc)
+<sub><strong><a href="https://github.com/pulls?q=is%3Apr+author%3Aarba-octo+is%3Apublic+-user%3Aarba-octo+is%3Amerged+sort%3Aupdated-desc">Merged</a></strong> · <a href="https://github.com/react-hook-form/react-hook-form/pull/13857" title="fix(deepEqual): compare sparse array lengths">react-hook-form #13857</a> · <a href="https://github.com/mantinedev/mantine/pull/9275" title="[@mantine/form] Add `UseContextForm` type export">mantine #9275</a></sub><br>
+<sub><strong><a href="https://github.com/pulls?q=is%3Apr+author%3Aarba-octo+is%3Apublic+-user%3Aarba-octo+is%3Aopen+sort%3Aupdated-desc">Open</a></strong> · <a href="https://github.com/mantinedev/mantine/pull/9283" title="[@mantine/charts] Fix right Y axis children rendering">mantine #9283</a> · <a href="https://github.com/date-fns/date-fns.org/pull/240" title="Fix type predicates in documentation">date-fns.org #240</a> · <a href="https://github.com/date-fns/date-fns.org/pull/239" title="Fix contributors list pagination">date-fns.org #239</a> · <a href="https://github.com/date-fns/date-fns.org/pull/237" title="Fix duplicate versions in documentation selector">date-fns.org #237</a></sub>
 
 <!-- contributions:end -->

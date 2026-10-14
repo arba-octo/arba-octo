@@ -6,22 +6,23 @@ const LIMIT = 10;
 const START = '<!-- contributions:start -->';
 const END = '<!-- contributions:end -->';
 const SECTIONS = [
-  { state: 'merged', title: 'Merged contributions' },
-  { state: 'open', title: 'Open pull requests' },
+  { state: 'merged', title: 'Merged' },
+  { state: 'open', title: 'Open' },
 ];
 
 function searchQuery(state) {
   return `is:pr author:${AUTHOR} is:public -user:${AUTHOR} is:${state}`;
 }
 
-function escapeTitle(title) {
+function escapeHtml(title) {
   return title
     .replace(/[\r\n\u2028\u2029]+/g, ' ')
     .replace(/[\u0000-\u001f\u007f]/g, ' ')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
-    .replace(/[\\`*_{}\[\]()#+.!|~-]/g, '\\$&');
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 async function fetchPullRequests(state, fetchImpl, token) {
@@ -97,21 +98,12 @@ async function fetchPullRequests(state, fetchImpl, token) {
 }
 
 function renderSection({ state, title }, items) {
-  const lines = [`## ${title}`, ''];
-  if (items.length) {
-    lines.push('| Project | Pull request | Link |', '| --- | --- | --- |');
-    for (const item of items) {
-      lines.push(
-        `| [${escapeTitle(item.repository)}](${item.repositoryUrl}) | ${escapeTitle(item.title)} | [#${item.number}](${item.url}) |`,
-      );
-    }
-  } else {
-    lines.push(`No ${state} pull requests yet.`);
-  }
   const searchUrl = new URL('https://github.com/pulls');
   searchUrl.searchParams.set('q', `${searchQuery(state)} sort:updated-desc`);
-  lines.push('', `[View all ${state} pull requests](${searchUrl})`);
-  return lines.join('\n');
+  const links = items.map((item) =>
+    `<a href="${item.url}" title="${escapeHtml(item.title)}">${escapeHtml(item.repository.split('/')[1])} #${item.number}</a>`,
+  );
+  return `<sub><strong><a href="${escapeHtml(searchUrl.href)}">${title}</a></strong> · ${links.join(' · ') || '—'}</sub>`;
 }
 
 export async function updateReadme({
@@ -134,7 +126,7 @@ export async function updateReadme({
   const results = await Promise.all(
     SECTIONS.map(({ state }) => fetchPullRequests(state, fetchImpl, token)),
   );
-  const content = SECTIONS.map((section, index) => renderSection(section, results[index])).join('\n\n');
+  const content = SECTIONS.map((section, index) => renderSection(section, results[index])).join('<br>\n');
   const newline = original.includes('\r\n') ? '\r\n' : '\n';
   const block = `\n\n${content}\n\n`.replace(/\n/g, newline);
   const updated = original.slice(0, start + START.length) + block + original.slice(end);
