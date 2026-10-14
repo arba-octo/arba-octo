@@ -2,7 +2,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 
 const AUTHOR = 'arba-octo';
-const LIMIT = 10;
+const LIMIT = 2;
 const START = '<!-- contributions:start -->';
 const END = '<!-- contributions:end -->';
 const SECTIONS = [
@@ -105,9 +105,10 @@ function renderSection({ state, title }, items) {
   );
   return [
     '<table>',
-    `<tr><th colspan="2"><sub><a href="${escapeHtml(searchUrl.href)}">${title}</a></sub></th></tr>`,
+    `<tr><th colspan="2"><sub>${title}</sub></th></tr>`,
     rows.join('\n') || '<tr><td colspan="2"><sub>—</sub></td></tr>',
     '</table>',
+    `<sub><a href="${escapeHtml(searchUrl.href)}">All</a></sub>`,
   ].join('\n');
 }
 
@@ -131,7 +132,13 @@ export async function updateReadme({
   const results = await Promise.all(
     SECTIONS.map(({ state }) => fetchPullRequests(state, fetchImpl, token)),
   );
-  const content = SECTIONS.map((section, index) => renderSection(section, results[index])).join('\n\n');
+  const content = [
+    '<table><tr>',
+    ...SECTIONS.map((section, index) =>
+      `<td valign="top">\n${renderSection(section, results[index])}\n</td>`,
+    ),
+    '</tr></table>',
+  ].join('\n');
   const newline = original.includes('\r\n') ? '\r\n' : '\n';
   const block = `\n\n${content}\n\n`.replace(/\n/g, newline);
   const updated = original.slice(0, start + START.length) + block + original.slice(end);
