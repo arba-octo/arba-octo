@@ -104,7 +104,7 @@ function renderSection({ state, title }, items) {
     `<td><sub><a href="${item.repositoryUrl}">${escapeHtml(item.repository.split('/')[1])}</a></sub></td><td><sub><a href="${item.url}" title="${escapeHtml(item.title)}">#${item.number}</a></sub></td>`,
   );
   return {
-    header: `<th colspan="2"><sub>${title} · <a href="${escapeHtml(searchUrl.href)}">All</a></sub></th>`,
+    header: `<th colspan="2" width="48%"><sub>${title} · <a href="${escapeHtml(searchUrl.href)}">All</a></sub></th>`,
     rows,
   };
 }
@@ -135,7 +135,7 @@ export async function updateReadme({
   );
   const content = [
     '<table>',
-    `<tr>${sections.map((section) => section.header).join('')}</tr>`,
+    `<tr>${sections.map((section) => section.header).join(`<th rowspan="${rows.length + 1}" width="24"></th>`)}</tr>`,
     ...rows,
     '</table>',
   ].join('\n');
