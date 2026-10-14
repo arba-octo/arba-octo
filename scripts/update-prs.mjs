@@ -100,13 +100,13 @@ async function fetchPullRequests(state, fetchImpl, token) {
 function renderSection({ state, title }, items) {
   const searchUrl = new URL('https://github.com/pulls');
   searchUrl.searchParams.set('q', `${searchQuery(state)} sort:updated-desc`);
-  const rows = items.map((item) =>
-    `<td><sub><a href="${item.repositoryUrl}">${escapeHtml(item.repository.split('/')[1])}</a></sub></td><td><sub><a href="${item.url}" title="${escapeHtml(item.title)}">#${item.number}</a></sub></td>`,
-  );
-  return {
-    header: `<th colspan="2" width="48%"><sub>${title} · <a href="${escapeHtml(searchUrl.href)}">All</a></sub></th>`,
-    rows,
-  };
+  const cells = Array.from({ length: LIMIT }, (_, index) => {
+    const item = items[index];
+    return item
+      ? `<td><sub><a href="${item.url}" title="${escapeHtml(item.title)}">${escapeHtml(item.repository.split('/')[1])} #${item.number}</a></sub></td>`
+      : '<td><sub>—</sub></td>';
+  });
+  return `<tr><th scope="row"><sub>${title} · <a href="${escapeHtml(searchUrl.href)}">All</a></sub></th>${cells.join('')}</tr>`;
 }
 
 export async function updateReadme({
@@ -129,14 +129,9 @@ export async function updateReadme({
   const results = await Promise.all(
     SECTIONS.map(({ state }) => fetchPullRequests(state, fetchImpl, token)),
   );
-  const sections = SECTIONS.map((section, index) => renderSection(section, results[index]));
-  const rows = Array.from({ length: Math.max(1, ...sections.map((section) => section.rows.length)) }, (_, index) =>
-    `<tr>${sections.map((section) => section.rows[index] || '<td colspan="2"><sub>—</sub></td>').join('')}</tr>`,
-  );
   const content = [
     '<table>',
-    `<tr>${sections.map((section) => section.header).join(`<th rowspan="${rows.length + 1}" width="24"></th>`)}</tr>`,
-    ...rows,
+    ...SECTIONS.map((section, index) => renderSection(section, results[index])),
     '</table>',
   ].join('\n');
   const newline = original.includes('\r\n') ? '\r\n' : '\n';
