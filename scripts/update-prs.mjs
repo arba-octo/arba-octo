@@ -1,21 +1,21 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 
-const AUTHOR = 'arba-octo';
-const LIMIT = 2;
-const START = '<!-- contributions:start -->';
-const END = '<!-- contributions:end -->';
+const GITHUB_USERNAME = 'arba-octo';
+const PULL_REQUESTS_PER_SECTION = 2;
+const START_MARKER = '<!-- contributions:start -->';
+const END_MARKER = '<!-- contributions:end -->';
 const SECTIONS = [
   { state: 'merged', title: 'Merged' },
   { state: 'open', title: 'Open' },
 ];
 
-function searchQuery(state) {
-  return `is:pr author:${AUTHOR} is:public -user:${AUTHOR} is:${state}`;
+function buildSearchQuery(state) {
+  return `is:pr author:${GITHUB_USERNAME} is:public -user:${GITHUB_USERNAME} is:${state}`;
 }
 
-function escapeHtml(title) {
-  return title
+function escapeHtml(text) {
+  return text
     .replace(/[\r\n\u2028\u2029]+/g, ' ')
     .replace(/[\u0000-\u001f\u007f]/g, ' ')
     .replace(/&/g, '&amp;')
@@ -25,19 +25,79 @@ function escapeHtml(title) {
     .replace(/'/g, '&#39;');
 }
 
-async function fetchPullRequests(state, fetchImpl, token) {
+function parsePullRequest(pullRequest, state) {
+  const repositoryMatch = typeof pullRequest?.repository_url === 'string'
+    ? /^https:\/\/api\.github\.com\/repos\/([A-Za-z0-9-]+)\/([A-Za-z0-9_.-]+)$/.exec(
+      pullRequest.repository_url,
+    )
+    : null;
+
+  if (!repositoryMatch) {
+    throw new Error(`GitHub returned an invalid repository URL for a ${state} PR.`);
+  }
+
+  const [, owner, repositoryName] = repositoryMatch;
+  if (owner.toLowerCase() === GITHUB_USERNAME) {
+    throw new Error(`GitHub returned a ${state} PR from the profile owner's repository.`);
+  }
+  if (
+    typeof pullRequest.user?.login !== 'string' ||
+    pullRequest.user.login.toLowerCase() !== GITHUB_USERNAME
+  ) {
+    throw new Error(`GitHub returned a ${state} PR by an unexpected author.`);
+  }
+  if (!Number.isSafeInteger(pullRequest.number) || pullRequest.number < 1) {
+    throw new Error(`GitHub returned an invalid ${state} PR number.`);
+  }
+  if (typeof pullRequest.title !== 'string' || !pullRequest.title.trim()) {
+    throw new Error(`GitHub returned an invalid ${state} PR title.`);
+  }
+
+  const expectedState = state === 'open' ? 'open' : 'closed';
+  if (pullRequest.state !== expectedState) {
+    throw new Error(`GitHub returned a ${state} PR with an unexpected state.`);
+  }
+
+  const pullRequestUrl = `https://github.com/${owner}/${repositoryName}/pull/${pullRequest.number}`;
+  if (
+    pullRequest.html_url !== pullRequestUrl ||
+    pullRequest.pull_request?.html_url !== pullRequestUrl
+  ) {
+    throw new Error(`GitHub returned an invalid ${state} PR URL.`);
+  }
+
+  const mergedAt = pullRequest.pull_request.merged_at;
+  if (state === 'merged') {
+    if (typeof mergedAt !== 'string' || !Number.isFinite(Date.parse(mergedAt))) {
+      throw new Error('GitHub returned a merged PR without a valid merge date.');
+    }
+  } else if (mergedAt !== null) {
+    throw new Error('GitHub returned an open PR with an unexpected merge date.');
+  }
+
+  return {
+    repositoryName,
+    number: pullRequest.number,
+    title: pullRequest.title,
+    url: pullRequestUrl,
+  };
+}
+
+async function fetchPullRequests(state, { fetchImpl, token }) {
   const url = new URL('https://api.github.com/search/issues');
-  url.searchParams.set('q', searchQuery(state));
+  url.searchParams.set('q', buildSearchQuery(state));
   url.searchParams.set('sort', 'updated');
   url.searchParams.set('order', 'desc');
-  url.searchParams.set('per_page', String(LIMIT));
+  url.searchParams.set('per_page', String(PULL_REQUESTS_PER_SECTION));
 
   const headers = {
     Accept: 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28',
-    'User-Agent': `${AUTHOR}-profile`,
+    'User-Agent': `${GITHUB_USERNAME}-profile`,
   };
-  if (token) headers.Authorization = `Bearer ${token}`;
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
 
   const response = await fetchImpl(url, {
     headers,
@@ -47,66 +107,79 @@ async function fetchPullRequests(state, fetchImpl, token) {
     throw new Error(`GitHub search for ${state} PRs failed (HTTP ${response.status}).`);
   }
 
-  const data = await response.json();
+  const searchResult = await response.json();
+  if (!searchResult || searchResult.incomplete_results !== false) {
+    throw new Error(`GitHub returned an incomplete ${state} PR list.`);
+  }
   if (
-    !data ||
-    data.incomplete_results !== false ||
-    !Number.isSafeInteger(data.total_count) ||
-    data.total_count < 0 ||
-    !Array.isArray(data.items) ||
-    data.items.length !== Math.min(LIMIT, data.total_count)
+    !Number.isSafeInteger(searchResult.total_count) ||
+    searchResult.total_count < 0 ||
+    !Array.isArray(searchResult.items)
   ) {
-    throw new Error(`GitHub returned an incomplete or invalid ${state} PR list.`);
+    throw new Error(`GitHub returned an invalid ${state} PR list.`);
   }
 
-  const seen = new Set();
-  return data.items.map((item) => {
-    const match = typeof item?.repository_url === 'string'
-      ? /^https:\/\/api\.github\.com\/repos\/([A-Za-z0-9-]+)\/([A-Za-z0-9_.-]+)$/.exec(item.repository_url)
-      : null;
-    if (
-      !match ||
-      match[1].toLowerCase() === AUTHOR ||
-      typeof item.user?.login !== 'string' ||
-      item.user.login.toLowerCase() !== AUTHOR ||
-      !Number.isSafeInteger(item.number) ||
-      item.number < 1 ||
-      typeof item.title !== 'string' ||
-      !item.title.trim() ||
-      item.state !== (state === 'open' ? 'open' : 'closed')
-    ) {
-      throw new Error(`GitHub returned an invalid ${state} PR.`);
+  const expectedCount = Math.min(PULL_REQUESTS_PER_SECTION, searchResult.total_count);
+  if (searchResult.items.length !== expectedCount) {
+    throw new Error(`GitHub returned an unexpected number of ${state} PRs.`);
+  }
+
+  const seenPullRequestUrls = new Set();
+  const pullRequests = searchResult.items.map((item) => {
+    const pullRequest = parsePullRequest(item, state);
+    if (seenPullRequestUrls.has(pullRequest.url)) {
+      throw new Error(`GitHub returned a duplicate ${state} PR.`);
     }
 
-    const repository = `${match[1]}/${match[2]}`;
-    const repositoryUrl = `https://github.com/${repository}`;
-    const prUrl = `${repositoryUrl}/pull/${item.number}`;
-    const mergedAt = item.pull_request?.merged_at;
-    if (
-      item.html_url !== prUrl ||
-      item.pull_request?.html_url !== prUrl ||
-      (state === 'merged'
-        ? typeof mergedAt !== 'string' || !Number.isFinite(Date.parse(mergedAt))
-        : mergedAt !== null) ||
-      seen.has(prUrl)
-    ) {
-      throw new Error(`GitHub returned an invalid or duplicate ${state} PR.`);
-    }
-    seen.add(prUrl);
-    return { repository, repositoryUrl, number: item.number, title: item.title, url: prUrl };
+    seenPullRequestUrls.add(pullRequest.url);
+    return pullRequest;
   });
+
+  return { pullRequests, totalCount: searchResult.total_count };
 }
 
-function renderSection({ state, title }, items) {
+function renderPullRequestCell(pullRequest) {
+  if (!pullRequest) {
+    return '    <td><sub>—</sub></td>';
+  }
+
+  const title = escapeHtml(pullRequest.title);
+  const label = escapeHtml(`${pullRequest.repositoryName} #${pullRequest.number}`);
+
+  return `    <td>
+      <sub><a href="${pullRequest.url}" title="${title}">${label}</a></sub>
+    </td>`;
+}
+
+function renderStatusRow({ state, title, pullRequests, totalCount }) {
   const searchUrl = new URL('https://github.com/pulls');
-  searchUrl.searchParams.set('q', `${searchQuery(state)} sort:updated-desc`);
-  const cells = Array.from({ length: LIMIT }, (_, index) => {
-    const item = items[index];
-    return item
-      ? `<td><sub><a href="${item.url}" title="${escapeHtml(item.title)}">${escapeHtml(item.repository.split('/')[1])} #${item.number}</a></sub></td>`
-      : '<td><sub>—</sub></td>';
-  });
-  return `<tr><th scope="row"><sub>${title} · <a href="${escapeHtml(searchUrl.href)}">All</a></sub></th>${cells.join('')}</tr>`;
+  searchUrl.searchParams.set('q', `${buildSearchQuery(state)} sort:updated-desc`);
+  const cells = Array.from({ length: PULL_REQUESTS_PER_SECTION }, (_, index) =>
+    renderPullRequestCell(pullRequests[index]),
+  );
+
+  return `  <tr>
+    <th scope="row">
+      <sub>${title} · <a href="${escapeHtml(searchUrl.href)}">All</a></sub>
+    </th>
+${cells.join('\n')}
+    <td><sub>${totalCount}</sub></td>
+  </tr>`;
+}
+
+function findContributionBlock(readme) {
+  const start = readme.indexOf(START_MARKER);
+  const end = readme.indexOf(END_MARKER);
+  if (
+    start === -1 ||
+    end < start + START_MARKER.length ||
+    readme.indexOf(START_MARKER, start + START_MARKER.length) !== -1 ||
+    readme.indexOf(END_MARKER, end + END_MARKER.length) !== -1
+  ) {
+    throw new Error('README must contain exactly one ordered pair of contribution markers.');
+  }
+
+  return { contentStart: start + START_MARKER.length, contentEnd: end };
 }
 
 export async function updateReadme({
@@ -114,32 +187,28 @@ export async function updateReadme({
   fetchImpl = fetch,
   token = process.env.GH_TOKEN || process.env.GITHUB_TOKEN,
 } = {}) {
-  const original = await readFile(readmePath, 'utf8');
-  const start = original.indexOf(START);
-  const end = original.indexOf(END);
-  if (
-    start === -1 ||
-    end < start + START.length ||
-    original.indexOf(START, start + START.length) !== -1 ||
-    original.indexOf(END, end + END.length) !== -1
-  ) {
-    throw new Error('README must contain exactly one ordered pair of contribution markers.');
-  }
+  const readme = await readFile(readmePath, 'utf8');
+  const { contentStart, contentEnd } = findContributionBlock(readme);
 
-  const results = await Promise.all(
-    SECTIONS.map(({ state }) => fetchPullRequests(state, fetchImpl, token)),
+  const sections = await Promise.all(
+    SECTIONS.map(async (section) => ({
+      ...section,
+      ...await fetchPullRequests(section.state, { fetchImpl, token }),
+    })),
   );
-  const content = [
+  const table = [
     '<table>',
-    ...SECTIONS.map((section, index) => renderSection(section, results[index])),
+    ...sections.map(renderStatusRow),
     '</table>',
   ].join('\n');
-  const newline = original.includes('\r\n') ? '\r\n' : '\n';
-  const block = `\n\n${content}\n\n`.replace(/\n/g, newline);
-  const updated = original.slice(0, start + START.length) + block + original.slice(end);
-  if (updated === original) return false;
+  const newline = readme.includes('\r\n') ? '\r\n' : '\n';
+  const block = `\n\n${table}\n\n`.replace(/\n/g, newline);
+  const updatedReadme = readme.slice(0, contentStart) + block + readme.slice(contentEnd);
+  if (updatedReadme === readme) {
+    return false;
+  }
 
-  await writeFile(readmePath, updated, 'utf8');
+  await writeFile(readmePath, updatedReadme, 'utf8');
   return true;
 }
 
