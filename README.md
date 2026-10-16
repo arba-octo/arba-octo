@@ -21,9 +21,9 @@
       <sub><a href="https://github.com/toss/es-toolkit/pull/2143" title="fix[deepFreeze]: freeze symbol and non-enumerable properties">es-toolkit #2143</a></sub>
     </td>
     <td>
-      <sub><a href="https://github.com/mantinedev/mantine/pull/9283" title="[@mantine/charts] Fix right Y axis children rendering">mantine #9283</a></sub>
+      <sub><a href="https://github.com/date-fns/date-fns.org/pull/240" title="Fix type predicates in documentation">date-fns.org #240</a></sub>
     </td>
-    <td><sub>5</sub></td>
+    <td><sub>4</sub></td>
   </tr>
 </table>
 
