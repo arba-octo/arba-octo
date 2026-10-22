@@ -6,12 +6,12 @@
       <sub>Merged · <a href="https://github.com/pulls?q=is%3Apr+author%3Aarba-octo+is%3Apublic+-user%3Aarba-octo+is%3Amerged+sort%3Aupdated-desc">All</a></sub>
     </th>
     <td>
-      <sub><a href="https://github.com/toss/es-toolkit/pull/2145" title="fix[PropertyPath]: export type from compat">es-toolkit #2145</a></sub>
+      <sub><a href="https://github.com/toss/es-toolkit/pull/2143" title="fix[deepFreeze]: freeze symbol and non-enumerable properties">es-toolkit #2143</a></sub>
     </td>
     <td>
-      <sub><a href="https://github.com/mantinedev/mantine/pull/9295" title="[@mantine/charts] Fix right Y axis children rendering">mantine #9295</a></sub>
+      <sub><a href="https://github.com/toss/es-toolkit/pull/2145" title="fix[PropertyPath]: export type from compat">es-toolkit #2145</a></sub>
     </td>
-    <td><sub>5</sub></td>
+    <td><sub>6</sub></td>
   </tr>
   <tr>
     <th scope="row">
@@ -23,7 +23,7 @@
     <td>
       <sub><a href="https://github.com/mantinedev/mantine/pull/9298" title="[@mantine/hooks] use-local-storage: Fix stale value after key change">mantine #9298</a></sub>
     </td>
-    <td><sub>7</sub></td>
+    <td><sub>6</sub></td>
   </tr>
 </table>
 
