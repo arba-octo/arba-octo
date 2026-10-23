@@ -18,10 +18,10 @@
       <sub>Open · <a href="https://github.com/pulls?q=is%3Apr+author%3Aarba-octo+is%3Apublic+-user%3Aarba-octo+is%3Aopen+sort%3Aupdated-desc">All</a></sub>
     </th>
     <td>
-      <sub><a href="https://github.com/adobe/react-spectrum/pull/10828" title="fix: keep S2 breadcrumbs visible after fonts load">react-spectrum #10828</a></sub>
+      <sub><a href="https://github.com/NG-ZORRO/ng-zorro-antd/pull/10015" title="fix(module:table): restore ellipsis in fixed columns">ng-zorro-antd #10015</a></sub>
     </td>
     <td>
-      <sub><a href="https://github.com/mantinedev/mantine/pull/9310" title="[@mantine/hooks] use-clipboard: Reset copied state on error">mantine #9310</a></sub>
+      <sub><a href="https://github.com/adobe/react-spectrum/pull/10828" title="fix: keep S2 breadcrumbs visible after fonts load">react-spectrum #10828</a></sub>
     </td>
     <td><sub>7</sub></td>
   </tr>
