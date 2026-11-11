@@ -6,12 +6,12 @@
       <sub>Merged · <a href="https://github.com/pulls?q=is%3Apr+author%3Aarba-octo+is%3Apublic+-user%3Aarba-octo+is%3Amerged+sort%3Aupdated-desc">All</a></sub>
     </th>
     <td>
-      <sub><a href="https://github.com/adobe/react-spectrum/pull/10921" title="fix(PreviewTrigger): don&#39;t prevent Escape when closed">react-spectrum #10921</a></sub>
+      <sub><a href="https://github.com/unovue/reka-ui/pull/3047" title="fix(Editable): submit when focusing another editable">reka-ui #3047</a></sub>
     </td>
     <td>
-      <sub><a href="https://github.com/adobe/react-spectrum/pull/10828" title="fix: keep S2 breadcrumbs visible after fonts load">react-spectrum #10828</a></sub>
+      <sub><a href="https://github.com/adobe/react-spectrum/pull/10921" title="fix(PreviewTrigger): don&#39;t prevent Escape when closed">react-spectrum #10921</a></sub>
     </td>
-    <td><sub>15</sub></td>
+    <td><sub>16</sub></td>
   </tr>
   <tr>
     <th scope="row">
@@ -23,7 +23,7 @@
     <td>
       <sub><a href="https://github.com/NG-ZORRO/ng-zorro-antd/pull/10048" title="fix(packaging): add rxjs peer dependency">ng-zorro-antd #10048</a></sub>
     </td>
-    <td><sub>7</sub></td>
+    <td><sub>6</sub></td>
   </tr>
 </table>
 
