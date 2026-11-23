@@ -6,12 +6,12 @@
       <sub>Merged · <a href="https://github.com/pulls?q=is%3Apr+author%3Aarba-octo+is%3Apublic+-user%3Aarba-octo+is%3Amerged+sort%3Aupdated-desc">All</a></sub>
     </th>
     <td>
-      <sub><a href="https://github.com/unovue/reka-ui/pull/3260" title="fix(NavigationMenu): emit interactOutside on outside pointer down">reka-ui #3260</a></sub>
+      <sub><a href="https://github.com/i18next/i18next/pull/2480" title="fix: preserve empty plural default values">i18next #2480</a></sub>
     </td>
     <td>
-      <sub><a href="https://github.com/react-bootstrap/react-bootstrap/pull/7064" title="fix(AccordionButton): correct default ref type">react-bootstrap #7064</a></sub>
+      <sub><a href="https://github.com/unovue/reka-ui/pull/3260" title="fix(NavigationMenu): emit interactOutside on outside pointer down">reka-ui #3260</a></sub>
     </td>
-    <td><sub>20</sub></td>
+    <td><sub>21</sub></td>
   </tr>
   <tr>
     <th scope="row">
